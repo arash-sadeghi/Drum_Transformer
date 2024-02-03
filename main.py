@@ -5,8 +5,8 @@ from playground.fake_data_generator import fake_data_generator
 
 if __name__ == '__main__':
     file_path = 'dataset/groove/drummer1/session1/1_funk_80_beat_4-4.mid'
-    # midi_tensor = tokenize_midi(file_path)
-    midi_tensor = torch.load("data/midi_tensor.torch")
+    midi_tensor = tokenize_midi(file_path)
+    # midi_tensor = torch.load("data/midi_tensor.torch")
 
     train_dataloader , val_dataloader = fake_data_generator()
 
