@@ -1,5 +1,12 @@
 # Transformer for Drum
 
+## info
+- ```generated_midi = tokenizer(tokens.tokens)``` this works just fine you don't need the whole object
+
+## Possible improvements:
+- [ ] make output just velocity numbers instread of midi
+- [ ] is tokenization independent of all passed data?
+
 ## tokenization observation:
 
 - Original midi:

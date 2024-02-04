@@ -4,10 +4,13 @@ import torch.optim as optim
 import random
 import math
 import numpy as np
-
 from PositionalEncoding import PositionalEncoding
 
+import pandas as pd
+from simpletransformers.seq2seq import Seq2SeqModel, Seq2SeqArgs
+
 class Transformer(nn.Module):
+
 
     """
     Model from "A detailed guide to Pytorch's nn.Transformer() module.", by
@@ -184,3 +187,24 @@ class Transformer(nn.Module):
             print()
             
         return train_loss_list, validation_loss_list
+    
+class simpleTransformer():
+    def __init__(self) -> None:
+        self.model_args = Seq2SeqArgs()
+
+        self.model_args.num_train_epochs = 5
+        self.model_args.evaluate_generated_text = True
+        self.model_args.overwrite_output_dir = True
+
+        self.model = Seq2SeqModel(
+            encoder_decoder_type="bart",
+            encoder_decoder_name="facebook/bart-base",
+            use_cuda = not True,
+            args=self.model_args
+            )
+
+    def train(self,data):
+        self.model.train_model(data)
+
+    def model_predict(self,data):
+        return self.model.predict(data)

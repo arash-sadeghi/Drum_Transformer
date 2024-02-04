@@ -4,3 +4,6 @@ dataset/
 .env/
 __pycache__/
 .DS_Store
+*.midi
+outputs/
+runs/
