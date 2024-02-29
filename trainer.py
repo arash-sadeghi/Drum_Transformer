@@ -1,10 +1,11 @@
 from transformers import AdamW, get_linear_schedule_with_warmup
 from torch import nn
 import torch
+from tqdm import tqdm
 class Trainer:
+    EPOCHS = 100
     def __init__(self,model,d_train_loader,device):
             
-        self.EPOCHS = 100
 
         self.model = model
         self.optimizer = AdamW(self.model.parameters(), lr=2e-5, correct_bias=False)
@@ -19,13 +20,19 @@ class Trainer:
         )
 
         self.device = device
-        self.loss_fn = nn.CrossEntropyLoss().to(self.device)
+        self.loss_fn = nn.MSELoss().to(self.device)
+        self.train_losses = []
 
+    def train(self):
+        progress_bar = tqdm(total=Trainer.EPOCHS, initial=0, ncols=100, mininterval=1)
+
+        for epoch in range(Trainer.EPOCHS):
+            self.train_epoch()
+            progress_bar.set_description_str("(train_loss={: 8.6f})".format(self.train_losses[-1]))
+            progress_bar.update(1)
+    
     def train_epoch(self):
         self.model = self.model.train()
-
-        losses = []
-        correct_predictions = 0
 
         for d in self.d_train_loader:
             input_ids = d[:][0].to(self.device)
@@ -33,21 +40,20 @@ class Trainer:
             targets = d[:][1].to(self.device)
 
             outputs = self.model(input_ids=input_ids,attention_mask=attention_mask)
+            outputs = torch.stack(outputs)
+            outputs = outputs.transpose(1,0).squeeze()
+            outputs_masked = (targets>0)*outputs
 
-            #TODO
-            _, preds = torch.max(outputs, dim=1)
-            loss = self.loss_fn(outputs, targets)
+            loss = self.loss_fn(outputs_masked, targets)
 
-            correct_predictions += torch.sum(preds == targets)
-            losses.append(loss.item())
+            self.train_losses.append(loss.item())
 
             loss.backward()
             nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
+            self.optimizer.zero_grad()
             self.optimizer.step()
             self.scheduler.step()
-            self.optimizer.zero_grad()
 
-        return None
 
     # def eval_model(model, data_loader, loss_fn, device, n_examples):
     #     model = model.eval()

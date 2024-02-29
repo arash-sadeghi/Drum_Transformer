@@ -1,8 +1,7 @@
 from midi_tokenizer import MidiBertTokenizer
-# from Transformer import Transformer , simpleTransformer
 import torch
 from bert_midi import BertMidi
-# from playground.fake_data_generator import fake_data_generator
+from trainer import Trainer
 
 if __name__ == '__main__':
     dataset = ['dataset/groove/drummer1/session1/1_funk_80_beat_4-4.mid']
@@ -14,15 +13,8 @@ if __name__ == '__main__':
     model = BertMidi()
     model = model.to(device)
 
-    #! test
-    for _ in midi_bert_tokenizer.d_val_loader:
-        x = _
-
-    res = model.forward(x[0],x[2])
-
-    print(res)
-
-    model.train(data)
+    trainer = Trainer(model, midi_bert_tokenizer.d_train_loader , device)
+    trainer.train()
 
     print(model.predict(['PitchDrum_46 Velocity_127 Duration_0.1.8 Rest_0.1.8 Position_28 Program_-1 PitchDrum_44 Velocity_127 Duration_0.1.8 Program_-1 PitchDrum_42 Velocity_127 Duration_0.1.8 Rest_0.1.8 Position_30 Program_-1 PitchDrum_38 Velocity_127 Duration_0.1.8 Program_-1 PitchDrum_42 Velocity_127 Duration_0.1.8 Rest_0.1.8 Position_0 Program_-1 PitchDrum_42 Velocity_127 Duration_0.1.8 Rest_0.1.8']))
 

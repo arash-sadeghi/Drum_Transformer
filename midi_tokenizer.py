@@ -148,20 +148,20 @@ class MidiBertTokenizer:
 
         inp_bert_tokens = self.bert_tokenizer(input_str)
 
-        count_masks_prev = 0
-        count_masks = 0
+        vel_loop_counter = 0
         for c in range(len(inp_bert_tokens.input_ids)//510):
             inp_bert_tokenized = inp_bert_tokens.input_ids[c*510:(c+1)*510]
+            
+            target_velocity_equal_len = [0]*len(inp_bert_tokenized)
 
             for _ in inp_bert_tokenized:
                 if _ == 103:
-                    count_masks +=1
+                    target_velocity_equal_len[c] = target_velocity[vel_loop_counter]
 
+            vel_loop_counter +=1
             self.inp_tgt['input'].append(inp_bert_tokenized)  #! 510 is bert capacity
             self.inp_tgt['attention_mask'].append(inp_bert_tokens.attention_mask[c*510:(c+1)*510])  #! 510 is bert capacity
-            self.inp_tgt['target'].append(target_velocity[count_masks_prev:count_masks])  #! 510 is bert capacity
-
-            count_masks_prev = count_masks
+            self.inp_tgt['target'].append(target_velocity_equal_len)  #! 510 is bert capacity
 
     def generate_data_loader(self):
         data = pd.DataFrame(self.inp_tgt)
