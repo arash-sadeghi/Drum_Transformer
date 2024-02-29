@@ -1,5 +1,9 @@
 # Transformer for Drum
 
+## Todo
+- [ ] add wandb
+
+
 ## Questions
 - [ ] the fact that we use '[MASK]' does it mean we should use MLM BERT instead of BERT cased?
 
