@@ -1,5 +1,8 @@
 # Transformer for Drum
 
+## Questions
+- [ ] the fact that we use '[MASK]' does it mean we should use MLM BERT instead of BERT cased?
+
 ## info
 - ```generated_midi = tokenizer(tokens.tokens)``` this works just fine you don't need the whole object
 
