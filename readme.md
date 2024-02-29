@@ -3,6 +3,10 @@
 ## info
 - ```generated_midi = tokenizer(tokens.tokens)``` this works just fine you don't need the whole object
 
+## Problem
+- [ ] output and input are not the same lenght. overfitting is perfect but output lenght is not complete
+
+
 ## Possible improvements:
 - [ ] make output just velocity numbers instread of midi
 - [ ] is tokenization independent of all passed data?

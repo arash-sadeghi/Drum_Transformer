@@ -196,6 +196,8 @@ class simpleTransformer():
         self.model_args.evaluate_generated_text = True
         self.model_args.overwrite_output_dir = True
 
+        print(self.model_args)
+
         self.model = Seq2SeqModel(
             encoder_decoder_type="bart",
             encoder_decoder_name="facebook/bart-base",
@@ -206,5 +208,5 @@ class simpleTransformer():
     def train(self,data):
         self.model.train_model(data)
 
-    def model_predict(self,data):
+    def predict(self,data):
         return self.model.predict(data)
