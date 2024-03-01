@@ -31,6 +31,10 @@ class Trainer:
         self.progress_bar = tqdm(total=Trainer.EPOCHS, initial=0, ncols=100, mininterval=1)
         self.step = 0
 
+        self.initial_weights = {}
+        for name, param in self.model.named_parameters():
+            self.initial_weights[name] = param.clone().detach()
+
         for epoch in range(Trainer.EPOCHS):
             self.train_epoch(epoch)
             self.progress_bar.update(1)
@@ -39,13 +43,16 @@ class Trainer:
     def train_epoch(self,epoch):
         self.model = self.model.train()
         for d in self.d_train_loader:
+            self.optimizer.zero_grad()
+            l1 = self.model.l1
+
             input_ids = d[:][0].to(self.device)
             attention_mask = d[:][2].to(self.device)
             targets = d[:][1].to(self.device)
 
             outputs = self.model(input_ids=input_ids,attention_mask=attention_mask)
-            outputs = torch.stack(outputs)
-            outputs = outputs.transpose(1,0).squeeze()
+            # outputs = torch.stack(outputs)
+            # outputs = outputs.transpose(1,0).squeeze()
             outputs_masked = (targets>0)*outputs
 
             loss = self.loss_fn(outputs_masked, targets)
@@ -54,14 +61,36 @@ class Trainer:
 
             loss.backward()
             nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
-            self.optimizer.zero_grad()
             self.optimizer.step()
             self.scheduler.step()
             self.progress_bar.set_description_str("(train_loss={: 8.6f})".format(self.train_losses[-1]))
             self.step +=1
             wandb.log({"x": float(self.train_losses[-1]*100)},step=self.step)
+            
+            print("l1:",
+                  torch.all(self.model.l1.weight == l1.weight)
+                  
+                  )
 
+            # for block in range(len(l1)):
+            #     if not torch.all(self.model.l1[block].weight == l1[block].weight):
+            #         print("!!!detected an update")
+            #         break
+            # print("update_check over")
 
+            # # Check which weights have changed
+            # for name, param in self.model.named_parameters():
+            #     if torch.equal(param, self.initial_weights[name]):
+            #         # print(f"{name}: Unchanged")
+            #         pass
+            #     else:
+            #         print(f"{name}: Changed")
+
+            # Access gradients for each layer's parameters
+            # print("Gradient of loss with respect to parameters:")
+            # for name, param in self.model.named_parameters():
+            #     if param.grad is not None:
+            #         print(name, param.grad)
 
 
     # def eval_model(model, data_loader, loss_fn, device, n_examples):

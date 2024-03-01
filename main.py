@@ -16,7 +16,7 @@ if __name__ == '__main__':
     trainer = Trainer(model, midi_bert_tokenizer.d_train_loader , device)
     trainer.train()
 
-    print(model.predict(['PitchDrum_46 Velocity_127 Duration_0.1.8 Rest_0.1.8 Position_28 Program_-1 PitchDrum_44 Velocity_127 Duration_0.1.8 Program_-1 PitchDrum_42 Velocity_127 Duration_0.1.8 Rest_0.1.8 Position_30 Program_-1 PitchDrum_38 Velocity_127 Duration_0.1.8 Program_-1 PitchDrum_42 Velocity_127 Duration_0.1.8 Rest_0.1.8 Position_0 Program_-1 PitchDrum_42 Velocity_127 Duration_0.1.8 Rest_0.1.8']))
+    # print(model.predict(['PitchDrum_46 Velocity_127 Duration_0.1.8 Rest_0.1.8 Position_28 Program_-1 PitchDrum_44 Velocity_127 Duration_0.1.8 Program_-1 PitchDrum_42 Velocity_127 Duration_0.1.8 Rest_0.1.8 Position_30 Program_-1 PitchDrum_38 Velocity_127 Duration_0.1.8 Program_-1 PitchDrum_42 Velocity_127 Duration_0.1.8 Rest_0.1.8 Position_0 Program_-1 PitchDrum_42 Velocity_127 Duration_0.1.8 Rest_0.1.8']))
 
     # midi_tensor = tokenize_midi(file_path)
     # midi_tensor = torch.load("data/midi_tensor.torch")

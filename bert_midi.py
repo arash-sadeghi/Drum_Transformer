@@ -9,7 +9,9 @@ class BertMidi(nn.Module):
     super().__init__()
     self.bert = BertModel.from_pretrained(PRE_TRAINED_MODEL_NAME)
     self.drop = nn.Dropout(p=0.3)
-    self.l1 = [nn.Linear(self.bert.config.hidden_size , 1) for _ in range(MAX_INPUT_LENGTH)]
+    # self.l1 = [nn.Linear(self.bert.config.hidden_size , 1) for _ in range(MAX_INPUT_LENGTH)]
+    self.l1 = nn.Linear(self.bert.config.hidden_size*MAX_INPUT_LENGTH , MAX_INPUT_LENGTH) 
+
 
   def forward(self, input_ids, attention_mask):
     bert_out = self.bert(
@@ -18,7 +20,9 @@ class BertMidi(nn.Module):
     )
 
     x = self.drop(bert_out.last_hidden_state)
-
-    res = [ F.sigmoid(self.l1[_](x[:,_])) for _ in range(MAX_INPUT_LENGTH)  ]
+    x = x.view(-1 , self.bert.config.hidden_size*MAX_INPUT_LENGTH)
+    # res = [ F.sigmoid(self.l1[_](x[:,_])) for _ in range(MAX_INPUT_LENGTH)  ]
+    res = self.l1(x)
+    res = F.sigmoid(res)
 
     return res
