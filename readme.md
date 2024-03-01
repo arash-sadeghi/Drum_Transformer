@@ -1,7 +1,8 @@
 # Transformer for Drum
 
 ## Todo
-- [ ] add wandb
+- [ ] Token indices sequence length is longer than the specified maximum sequence length for this model (1661 > 512). Running this sequence through the model will result in indexing errors
+
 
 
 ## Questions

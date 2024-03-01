@@ -7,6 +7,8 @@ import pandas as pd
 from transformers import BertTokenizer
 from torch.utils.data import Dataset, DataLoader
 from sklearn.model_selection import train_test_split
+import json
+import os 
 
 MIDI_LOOP_LIMIT = 30
 WINDOW_SIZE = 30
@@ -90,6 +92,7 @@ class CustomDataset(Dataset):
 class MidiBertTokenizer:
     BATCH_SIZE = 16
     RANDOM_SEED = 100
+    DICT_FILE_URL = os.path.join("data","data_dict","data_dict.json")
     def __init__(self) -> None:
 
         
@@ -116,13 +119,30 @@ class MidiBertTokenizer:
 
     def tokenize_midi_dataset(self,file_list): #! expected to recieve a list of paths corrsponding to midi data
         print("[+] loading midi files to data_loader")
-        for file_path in tqdm(file_list):
-            self.tokenize_midi_file(file_path)
+        if os.path.exists(MidiBertTokenizer.DICT_FILE_URL):
+            print(f"[+] loading data dictionary from file {MidiBertTokenizer.DICT_FILE_URL}")
+            with open(MidiBertTokenizer.DICT_FILE_URL, 'r') as f:
+                self.inp_tgt = json.load(f)
+
+        else:
+            print(f"[+] writing data to dictionary file {MidiBertTokenizer.DICT_FILE_URL}")
+
+            for file_path in tqdm(file_list):
+                self.tokenize_midi_file(file_path)
+            
+            with open(MidiBertTokenizer.DICT_FILE_URL, 'w') as f:
+                json.dump(self.inp_tgt, f)
+        
+        
         self.generate_data_loader()    
 
     def tokenize_midi_file(self,file_path):
-
-        midi_tokens = self.tokenizer_input(file_path)  # automatically detects Score objects, paths, tokens
+        try: #! some midi files are not structured well
+            midi_tokens = self.tokenizer_input(file_path)  # automatically detects Score objects, paths, tokens
+        except Exception as e:
+            print(f"[-] Error reading {file_path}, Error: {e}")
+            return
+        
         token_length = len(midi_tokens.ids)
         
         target_velocity = []

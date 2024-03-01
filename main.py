@@ -2,9 +2,9 @@ from midi_tokenizer import MidiBertTokenizer
 import torch
 from bert_midi import BertMidi
 from trainer import Trainer
-
+from find_data_path import find_midi_files
 if __name__ == '__main__':
-    dataset = ['dataset/groove/drummer1/session1/1_funk_80_beat_4-4.mid']
+    dataset = find_midi_files('dataset')
 
     midi_bert_tokenizer = MidiBertTokenizer()
     midi_bert_tokenizer.tokenize_midi_dataset(dataset)
@@ -13,7 +13,7 @@ if __name__ == '__main__':
     model = BertMidi()
     model = model.to(device)
 
-    trainer = Trainer(model, midi_bert_tokenizer.d_train_loader , device)
+    trainer = Trainer(model, midi_bert_tokenizer.d_train_loader,midi_bert_tokenizer.d_val_loader , device)
     trainer.train()
 
     # print(model.predict(['PitchDrum_46 Velocity_127 Duration_0.1.8 Rest_0.1.8 Position_28 Program_-1 PitchDrum_44 Velocity_127 Duration_0.1.8 Program_-1 PitchDrum_42 Velocity_127 Duration_0.1.8 Rest_0.1.8 Position_30 Program_-1 PitchDrum_38 Velocity_127 Duration_0.1.8 Program_-1 PitchDrum_42 Velocity_127 Duration_0.1.8 Rest_0.1.8 Position_0 Program_-1 PitchDrum_42 Velocity_127 Duration_0.1.8 Rest_0.1.8']))

@@ -3,16 +3,29 @@ from torch import nn
 import torch
 from tqdm import tqdm
 import wandb
+import os
+from time import time,ctime
+
+def create_path_if_not_exists(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+
 
 class Trainer:
-    EPOCHS = 100
-    def __init__(self,model,d_train_loader,device):
+    EPOCHS = 1000
+    SAVE_INTERVAL = 100
+    CODE_RUN_TIME = ctime(time()).replace(':','_').replace(' ','_')
+    STATE_SAVE_PATH = os.path.join('data','state',CODE_RUN_TIME)
+
+    def __init__(self,model,d_train_loader,d_val_loader,device):
             
 
         self.model = model
         self.optimizer = AdamW(self.model.parameters(), lr=2e-5, correct_bias=False)
         
         self.d_train_loader = d_train_loader
+        self.d_val_loader = d_val_loader
+
         total_steps = len(d_train_loader) * self.EPOCHS
 
         self.scheduler = get_linear_schedule_with_warmup(
@@ -27,6 +40,17 @@ class Trainer:
         wandb.init(project="Music-Transformer")
         wandb.watch(self.model)
 
+        self.generate_required_paths()
+    
+    def generate_required_paths(self):
+
+        if not os.path.exists(Trainer.STATE_SAVE_PATH):
+            create_path_if_not_exists(Trainer.STATE_SAVE_PATH)
+            print(f"[+] Path '{Trainer.STATE_SAVE_PATH}' didn't exist and has been created.")
+        else:
+            print(f"[+] Path '{Trainer.STATE_SAVE_PATH}' already exists.")
+
+
     def train(self):
         self.progress_bar = tqdm(total=Trainer.EPOCHS, initial=0, ncols=100, mininterval=1)
         self.step = 0
@@ -36,11 +60,13 @@ class Trainer:
             self.initial_weights[name] = param.clone().detach()
 
         for epoch in range(Trainer.EPOCHS):
-            self.train_epoch(epoch)
+            self.train_epoch()
             self.progress_bar.update(1)
 
+    def save_model_weigthts(self):
+        torch.save( self.model.state_dict() , os.path.join(Trainer.STATE_SAVE_PATH,f'weights_{self.step}.pts') )
     
-    def train_epoch(self,epoch):
+    def train_epoch(self):
         self.model = self.model.train()
         for d in self.d_train_loader:
             self.optimizer.zero_grad()
@@ -65,12 +91,14 @@ class Trainer:
             self.scheduler.step()
             self.progress_bar.set_description_str("(train_loss={: 8.6f})".format(self.train_losses[-1]))
             self.step +=1
-            wandb.log({"x": float(self.train_losses[-1]*100)},step=self.step)
+            wandb.log({"trainLoss": float(loss.item()*100)},step=self.step)
+
+            if self.step % Trainer.SAVE_INTERVAL == 0:
+                self.save_model_weigthts()
+                self.eval_model()
+
             
-            print("l1:",
-                  torch.all(self.model.l1.weight == l1.weight)
-                  
-                  )
+            # print("l1:",torch.all(self.model.l1.weight == l1.weight))
 
             # for block in range(len(l1)):
             #     if not torch.all(self.model.l1[block].weight == l1[block].weight):
@@ -93,28 +121,21 @@ class Trainer:
             #         print(name, param.grad)
 
 
-    # def eval_model(model, data_loader, loss_fn, device, n_examples):
-    #     model = model.eval()
+    def eval_model(self):
+        self.model = self.model.eval()
+        for d in self.d_val_loader:
+            input_ids = d[:][0].to(self.device)
+            attention_mask = d[:][2].to(self.device)
+            targets = d[:][1].to(self.device)
 
-    #     losses = []
-    #     correct_predictions = 0
+            outputs = self.model(input_ids=input_ids,attention_mask=attention_mask)
+            outputs_masked = (targets>0)*outputs
 
-    #     with torch.no_grad():
-    #         for d in data_loader:
+            loss = self.loss_fn(outputs_masked, targets)
 
-    #         input_ids = d[:][0].to(device)
-    #         attention_mask = d[:][2].to(device)
-    #         targets = d[:][1].to(device)
+            wandb.log({"valLoss": float(loss.item()*100)},step=self.step)
 
-    #         outputs = model(
-    #             input_ids=input_ids,
-    #             attention_mask=attention_mask
-    #         )
-    #         _, preds = torch.max(outputs, dim=1)
+            torch.save( d , os.path.join(Trainer.STATE_SAVE_PATH,f'input_{self.step}.pts') )
+            torch.save( outputs , os.path.join(Trainer.STATE_SAVE_PATH,f'ouput_{self.step}.pts') )
 
-    #         loss = loss_fn(outputs, targets)
 
-    #         correct_predictions += torch.sum(preds == targets)
-    #         losses.append(loss.item())
-
-    #     return correct_predictions.double() / n_examples, np.mean(losses)
