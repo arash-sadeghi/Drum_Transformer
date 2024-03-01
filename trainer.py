@@ -2,6 +2,8 @@ from transformers import AdamW, get_linear_schedule_with_warmup
 from torch import nn
 import torch
 from tqdm import tqdm
+import wandb
+
 class Trainer:
     EPOCHS = 100
     def __init__(self,model,d_train_loader,device):
@@ -22,18 +24,20 @@ class Trainer:
         self.device = device
         self.loss_fn = nn.MSELoss().to(self.device)
         self.train_losses = []
+        wandb.init(project="Music-Transformer")
+        wandb.watch(self.model)
 
     def train(self):
-        progress_bar = tqdm(total=Trainer.EPOCHS, initial=0, ncols=100, mininterval=1)
+        self.progress_bar = tqdm(total=Trainer.EPOCHS, initial=0, ncols=100, mininterval=1)
+        self.step = 0
 
         for epoch in range(Trainer.EPOCHS):
-            self.train_epoch()
-            progress_bar.set_description_str("(train_loss={: 8.6f})".format(self.train_losses[-1]))
-            progress_bar.update(1)
-    
-    def train_epoch(self):
-        self.model = self.model.train()
+            self.train_epoch(epoch)
+            self.progress_bar.update(1)
 
+    
+    def train_epoch(self,epoch):
+        self.model = self.model.train()
         for d in self.d_train_loader:
             input_ids = d[:][0].to(self.device)
             attention_mask = d[:][2].to(self.device)
@@ -53,6 +57,11 @@ class Trainer:
             self.optimizer.zero_grad()
             self.optimizer.step()
             self.scheduler.step()
+            self.progress_bar.set_description_str("(train_loss={: 8.6f})".format(self.train_losses[-1]))
+            self.step +=1
+            wandb.log({"x": float(self.train_losses[-1]*100)},step=self.step)
+
+
 
 
     # def eval_model(model, data_loader, loss_fn, device, n_examples):
