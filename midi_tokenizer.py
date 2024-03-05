@@ -93,6 +93,7 @@ class MidiBertTokenizer:
     BATCH_SIZE = 16
     RANDOM_SEED = 100
     DICT_FILE_URL = os.path.join("data","data_dict","data_dict.json")
+    SCALING_FACTOR = 127
     def __init__(self) -> None:
 
         
@@ -152,7 +153,7 @@ class MidiBertTokenizer:
                 input_midi_ids.append('[MASK]')
 
                 velocity = int(midi_tokens.tokens[i].split('_')[1])
-                velocity = velocity/200 #! normalizing
+                velocity = velocity/MidiBertTokenizer.SCALING_FACTOR #! normalizing
 
                 assert velocity>0 and velocity<=1
 

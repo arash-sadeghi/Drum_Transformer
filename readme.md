@@ -10,7 +10,9 @@
 
 ## info
 - ```generated_midi = tokenizer(tokens.tokens)``` this works just fine you don't need the whole object
-- velocity outputs are mapped between zero and one. so in inference time multiply model output by 200
+- velocity outputs are mapped between zero and one. so in inference time multiply model output by 127
+- Scaling has no effect on the learning ability of bert. But model being trained has a big effect on berts learning ability. Withoput pretrained weights, bert doesn't learn anything
+- Suspecious of warmup and gradient cutting
 
 ## Problem
 - [ ] output and input are not the same lenght. overfitting is perfect but output lenght is not complete

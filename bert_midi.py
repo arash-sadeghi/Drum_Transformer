@@ -1,6 +1,9 @@
 from transformers import BertModel, BertTokenizer, AdamW, get_linear_schedule_with_warmup
 from torch import nn
 import torch.nn.functional as F
+from transformers import BertConfig
+
+
 PRE_TRAINED_MODEL_NAME = 'bert-base-cased'
 MAX_INPUT_LENGTH = 510 #self.bert.config.max_position_embeddings
 class BertMidi(nn.Module):
@@ -8,6 +11,7 @@ class BertMidi(nn.Module):
   def __init__(self, n_classes = 2):
     super().__init__()
     self.bert = BertModel.from_pretrained(PRE_TRAINED_MODEL_NAME)
+    # self.bert = BertModel(config = BertConfig.from_json_file('bert_config.json')) 
     self.drop = nn.Dropout(p=0.3)
     # self.l1 = [nn.Linear(self.bert.config.hidden_size , 1) for _ in range(MAX_INPUT_LENGTH)]
     self.l1 = nn.Linear(self.bert.config.hidden_size*MAX_INPUT_LENGTH , MAX_INPUT_LENGTH) 
