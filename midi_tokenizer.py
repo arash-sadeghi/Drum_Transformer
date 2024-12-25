@@ -10,63 +10,6 @@ from sklearn.model_selection import train_test_split
 import json
 import os 
 
-MIDI_LOOP_LIMIT = 30
-WINDOW_SIZE = 30
-PRE_TRAINED_MODEL_NAME = 'bert-base-cased'
-
-# Load MIDI file and extract drum track
-def load_midi(file_path):
-    midi = mido.MidiFile(file_path)
-    drum_track = []
-
-    loop_limiter = 0
-    # for msg in tqdm(midi.play()):
-    for msg in midi.play():
-        if msg.type == 'note_on' and msg.channel == 9:  # Drum channel
-            drum_track.append(msg.note) #! the rest of midi information is diposed
-
-        #! this part is just for observation
-        print(f"[INFO] {loop_limiter} : {msg}")
-        loop_limiter += 1 
-        if loop_limiter>=MIDI_LOOP_LIMIT: break
-
-    return drum_track
-
-# Preprocess the data and convert it into PyTorch tensors
-def midi2tensor(data):
-    # Your preprocessing logic goes here
-    # This is a simple example, you may need to create a vocabulary or other preprocessing steps
-    return torch.tensor(data, dtype=torch.float32).view(-1, 1, 1)
-
-# Train the transformer model
-def train_transformer(data, model, optimizer, criterion, epochs=100):
-    for epoch in range(epochs):
-        optimizer.zero_grad()
-        output = model(data)
-        loss = criterion(output, data)
-        loss.backward()
-        optimizer.step()
-
-        if epoch % 10 == 0:
-            print(f'Epoch {epoch}, Loss: {loss.item()}')
-
-def put_tokens2windows(input_list , window_size = WINDOW_SIZE):
-    return [' '.join(input_list[i:i + window_size]) for i in range(0, len(input_list), window_size)]
-
-def put_ids2str(id_list):
-    return ' '.join(str(_) for _ in id_list)
-
-def shuffle_in_same_manner(list1, list2):
-    # Combine the lists element-wise
-    combined_lists = list(zip(list1, list2))
-
-    # Shuffle the combined lists
-    random.shuffle(combined_lists)
-
-    # Unzip the shuffled lists
-    shuffled_list1, shuffled_list2 = zip(*combined_lists)
-
-    return list(shuffled_list1), list(shuffled_list2)
 
 class CustomDataset(Dataset):
     def __init__(self, dataframe):
@@ -90,6 +33,7 @@ class CustomDataset(Dataset):
 
 
 class MidiBertTokenizer:
+    PRE_TRAINED_MODEL_NAME = 'bert-base-cased'
     BATCH_SIZE = 16
     RANDOM_SEED = 100
     DICT_FILE_URL = os.path.join("data","data_dict","data_dict.json")
@@ -116,7 +60,7 @@ class MidiBertTokenizer:
         config_input = TokenizerConfig(**TOKENIZER_PARAMS)
         self.tokenizer_input = REMI(config_input)
 
-        self.bert_tokenizer = BertTokenizer.from_pretrained(PRE_TRAINED_MODEL_NAME)
+        self.bert_tokenizer = BertTokenizer.from_pretrained(MidiBertTokenizer.PRE_TRAINED_MODEL_NAME)
 
     def tokenize_midi_dataset(self,file_list): #! expected to recieve a list of paths corrsponding to midi data
         print("[+] loading midi files to data_loader")
@@ -195,12 +139,5 @@ class MidiBertTokenizer:
         self.d_train_loader = DataLoader(CustomDataset(df_train), batch_size=MidiBertTokenizer.BATCH_SIZE, shuffle=True)
         self.d_test_loader = DataLoader(CustomDataset(df_test), batch_size=MidiBertTokenizer.BATCH_SIZE, shuffle=True)
         self.d_val_loader = DataLoader(CustomDataset(df_val), batch_size=MidiBertTokenizer.BATCH_SIZE, shuffle=True)
-
-
-# Example usage
-if __name__ == "__main__":
-    # file_path = 'dataset/groove/drummer6/session2/2_rock_95_beat_4-4.mid'#'dataset/groove/drummer1/session1/1_funk_80_beat_4-4.mid'
-    file_path = 'dataset/groove/drummer1/session1/1_funk_80_beat_4-4.mid'
-    midi_tensor = tokenize_midi(file_path)
 
 
