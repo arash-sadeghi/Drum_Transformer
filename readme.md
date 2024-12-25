@@ -1,7 +1,22 @@
 # Transformer for Drum
 
+## Todo
+- [ ] Token indices sequence length is longer than the specified maximum sequence length for this model (1661 > 512). Running this sequence through the model will result in indexing errors
+
+
+
+## Questions
+- [ ] the fact that we use '[MASK]' does it mean we should use MLM BERT instead of BERT cased?
+
 ## info
 - ```generated_midi = tokenizer(tokens.tokens)``` this works just fine you don't need the whole object
+- velocity outputs are mapped between zero and one. so in inference time multiply model output by 127
+- Scaling has no effect on the learning ability of bert. But model being trained has a big effect on berts learning ability. Withoput pretrained weights, bert doesn't learn anything
+- Suspecious of warmup and gradient cutting
+
+## Problem
+- [ ] output and input are not the same lenght. overfitting is perfect but output lenght is not complete
+
 
 ## Possible improvements:
 - [ ] make output just velocity numbers instread of midi

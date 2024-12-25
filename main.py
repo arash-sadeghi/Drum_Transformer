@@ -1,14 +1,22 @@
-from midi_tokenizer import tokenize_midi
-from Transformer import Transformer , simpleTransformer
+from midi_tokenizer import MidiBertTokenizer
 import torch
-# from playground.fake_data_generator import fake_data_generator
-
+from bert_midi import BertMidi
+from trainer import Trainer
+from find_data_path import find_midi_files
 if __name__ == '__main__':
-    file_path = 'dataset/groove/drummer1/session1/1_funk_80_beat_4-4.mid'
+    dataset = find_midi_files('dataset')
 
-    data = tokenize_midi(file_path)
-    model = simpleTransformer()
-    model.train(data)
+    midi_bert_tokenizer = MidiBertTokenizer()
+    midi_bert_tokenizer.tokenize_midi_dataset(dataset)
+
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    model = BertMidi()
+    model = model.to(device)
+
+    trainer = Trainer(model, midi_bert_tokenizer.d_train_loader,midi_bert_tokenizer.d_val_loader , device)
+    trainer.train()
+
+    # print(model.predict(['PitchDrum_46 Velocity_127 Duration_0.1.8 Rest_0.1.8 Position_28 Program_-1 PitchDrum_44 Velocity_127 Duration_0.1.8 Program_-1 PitchDrum_42 Velocity_127 Duration_0.1.8 Rest_0.1.8 Position_30 Program_-1 PitchDrum_38 Velocity_127 Duration_0.1.8 Program_-1 PitchDrum_42 Velocity_127 Duration_0.1.8 Rest_0.1.8 Position_0 Program_-1 PitchDrum_42 Velocity_127 Duration_0.1.8 Rest_0.1.8']))
 
     # midi_tensor = tokenize_midi(file_path)
     # midi_tensor = torch.load("data/midi_tensor.torch")
