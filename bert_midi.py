@@ -18,7 +18,6 @@ class BertMidi(nn.Module):
             input_ids=input_ids,
             attention_mask=attention_mask
         )
-
         x = self.drop(bert_out.last_hidden_state)
         x = x.view(-1 , self.bert.config.hidden_size*BertMidi.MAX_INPUT_LENGTH)
         # res = [ F.sigmoid(self.l1[_](x[:,_])) for _ in range(MAX_INPUT_LENGTH)  ]
