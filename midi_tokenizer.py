@@ -90,7 +90,7 @@ class CustomDataset(Dataset):
 
 
 class MidiBertTokenizer:
-    BATCH_SIZE = 16
+    BATCH_SIZE = 8
     RANDOM_SEED = 100
     DICT_FILE_URL = os.path.join("data","data_dict","data_dict.json")
     SCALING_FACTOR = 127

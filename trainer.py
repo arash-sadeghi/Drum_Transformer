@@ -12,8 +12,8 @@ def create_path_if_not_exists(path):
 
 
 class Trainer:
-    EPOCHS = 1000
-    SAVE_INTERVAL = 100
+    EPOCHS = 10000
+    SAVE_INTERVAL = 10
     CODE_RUN_TIME = ctime(time()).replace(':','_').replace(' ','_')
     STATE_SAVE_PATH = os.path.join('data','state',CODE_RUN_TIME)
 
@@ -35,7 +35,7 @@ class Trainer:
         )
 
         self.device = device
-        self.loss_fn = nn.MSELoss().to(self.device)
+        self.loss_fn =  nn.CrossEntropyLoss().to(self.device)  # nn.MSELoss().to(self.device)
         self.train_losses = []
         wandb.init(project="Music-Transformer")
         wandb.watch(self.model)
